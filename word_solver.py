@@ -9,26 +9,67 @@ logger = logging.getLogger(__name__)
 class WordSolver:
 
     def __init__(self, fname, runmode):
-        self.runmode = runmode
-        self.puzzle_soln = []
-        self.indices = {}
-        self.words = {}
-
-        with open(fname) as f:
-            puzzle_len = int(f.readline())
-            self.puzzle_soln = [''] * puzzle_len
-            for line in f:
-                category = line.split(':')[0]
-                indices = [int(x) - 1 for x in line.split(':')[1].split(', ')]
-                self.indices[category] = indices
-
-        for category in self.indices:
-            self.words[category] = []
-            category_path = './wordlist/{0}.txt'.format(category)
-            with open(category_path) as f:
+        if runmode.lower() != 'letter' and runmode.lower() != 'word':
+            logger.error('Invalid runmode.')
+            raise SystemExit
+        self.runmode = runmode.lower()
+        self.puzzle_solutions = []
+        self.puzzle_len = 0
+        self.categories = {}
+        self.valid_letters = None
+        try:
+            with open(fname) as f:
+                self.puzzle_len = int(f.readline())
+                if runmode == 'letter':
+                    self.valid_letters = [[] for _ in range(self.puzzle_len)]
                 for line in f:
-                    self.words[category].append(line.rstrip('\r\n'))
+                    category = line.split(':')[0]
+                    category_path = './wordlist/{0}.txt'.format(category)
+                    words = []
+                    with open(category_path) as f0:
+                        for word in f0:
+                            words.append(word.rstrip('\r\n'))
 
+                    indices = [int(x) - 1 for x in line.split(':')[1].split(', ')]
+                    self.categories[category] = (indices, words)
+                    if runmode == 'letter':
+                        self.valid_letters[indices[0]].extend([x[0] for x in words])
+                        self.valid_letters[indices[1]].extend([x[1] for x in words])
+                        self.valid_letters[indices[2]].extend([x[2] for x in words])
+        except OSError:
+            logger.error('Could not open puzzle.')
+
+    def __is_solution(self, res):
+        """ Check if result is a solution the puzzle"""
+        if len(res) == self.puzzle_len:
+            for category, (idxs, words) in self.categories.items():
+                possible_words = [res[idxs[0]] + res[idxs[1]] + res[idxs[2]],
+                                  res[idxs[0]] + res[idxs[2]] + res[idxs[1]],
+                                  res[idxs[1]] + res[idxs[0]] + res[idxs[2]],
+                                  res[idxs[1]] + res[idxs[2]] + res[idxs[0]],
+                                  res[idxs[2]] + res[idxs[0]] + res[idxs[1]],
+                                  res[idxs[2]] + res[idxs[1]] + res[idxs[0]]]
+                if not any(i in possible_words for i in words):
+                    return False
+            return True
+        else:
+            return False
+
+    def __is_valid(self, res):
+        """ Check if result is valid so far (consistenct check) """
+        pass
+
+    def _solve_letter(self, res=list(), index=0):
+        pass
+
+    def _solve_word(self):
+        pass
+
+    def solve(self):
+        if self.runmode == 'letter':
+            self._solve_letter()
+        elif self.runmode == 'word':
+            self._solve_word()
 
 
 def main():
@@ -41,6 +82,7 @@ def main():
     args = parser.parse_args()
 
     ws = WordSolver(args.fname, args.runmode)
+    ws.solve()
 
 
 if __name__ == '__main__':

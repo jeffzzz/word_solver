@@ -1,0 +1,5 @@
+7
+furniture: 1, 2, 4
+clothing: 1, 4, 5
+interjection: 2, 5, 7
+noun: 3, 4, 6
