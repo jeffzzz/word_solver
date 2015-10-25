@@ -1,6 +1,8 @@
 import argparse
 import logging
 
+from collections import Counter
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -16,12 +18,15 @@ class WordSolver:
         self.puzzle_solutions = []
         self.puzzle_len = 0
         self.categories = {}
+        self.valid_categories = None
         self.valid_letters = None
         try:
             with open(fname) as f:
                 self.puzzle_len = int(f.readline())
+                self.valid_categories = [[] for _ in range(self.puzzle_len)]
                 if runmode == 'letter':
-                    self.valid_letters = [[] for _ in range(self.puzzle_len)]
+                    self.valid_letters = [{} for _ in range(self.puzzle_len)]
+
                 for line in f:
                     category = line.split(':')[0]
                     category_path = './wordlist/{0}.txt'.format(category)
@@ -32,30 +37,30 @@ class WordSolver:
 
                     indices = [int(x) - 1 for x in line.split(':')[1].split(', ')]
                     self.categories[category] = (indices, words)
+                    self.valid_categories[indices[0]].append(category)
+                    self.valid_categories[indices[1]].append(category)
+                    self.valid_categories[indices[2]].append(category)
                     if runmode == 'letter':
-                        self.valid_letters[indices[0]].append((category, list(set([x[0] for x in words]))))
-                        self.valid_letters[indices[1]].append((category, list(set([x[1] for x in words]))))
-                        self.valid_letters[indices[2]].append((category, list(set([x[2] for x in words]))))
+                        for word in words:
+                            self.valid_letters[indices[0]].append([x[0] for x in words])
+                            self.valid_letters[indices[1]].append([x[1] for x in words])
+                            self.valid_letters[indices[2]].append([x[2] for x in words])
         except OSError:
             logger.error('Could not open puzzle.')
 
     def __is_solution(self, res):
         """ Check if result is a solution the puzzle"""
+        for category, (idxs, words) in self.categories.items():
+            word = res[idxs[0]] + res[idxs[1]] + res[idxs[2]]
+            if word in words:
+                return False
+        return True
+
+    def _solve_letter(self, res=list(), index=None):
         if len(res) == self.puzzle_len:
-            for category, (idxs, words) in self.categories.items():
-                word = res[idxs[0]] + res[idxs[1]] + res[idxs[2]]
-                if word in words:
-                    return False
-            return True
-        else:
-            return False
-
-    def __is_valid(self, res):
-        """ Check if result is valid so far (consistency check) """
-        pass
-
-    def _solve_letter(self, res=list(), index=0):
-        pass
+            if self.__is_solution(res):
+                self.puzzle_solutions.append(res)
+            return
 
     def _solve_word(self):
         pass
