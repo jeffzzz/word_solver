@@ -33,9 +33,9 @@ class WordSolver:
                     indices = [int(x) - 1 for x in line.split(':')[1].split(', ')]
                     self.categories[category] = (indices, words)
                     if runmode == 'letter':
-                        self.valid_letters[indices[0]].extend([x[0] for x in words])
-                        self.valid_letters[indices[1]].extend([x[1] for x in words])
-                        self.valid_letters[indices[2]].extend([x[2] for x in words])
+                        self.valid_letters[indices[0]].append((category, list(set([x[0] for x in words]))))
+                        self.valid_letters[indices[1]].append((category, list(set([x[1] for x in words]))))
+                        self.valid_letters[indices[2]].append((category, list(set([x[2] for x in words]))))
         except OSError:
             logger.error('Could not open puzzle.')
 
@@ -56,7 +56,7 @@ class WordSolver:
             return False
 
     def __is_valid(self, res):
-        """ Check if result is valid so far (consistenct check) """
+        """ Check if result is valid so far (consistency check) """
         pass
 
     def _solve_letter(self, res=list(), index=0):
