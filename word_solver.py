@@ -43,13 +43,8 @@ class WordSolver:
         """ Check if result is a solution the puzzle"""
         if len(res) == self.puzzle_len:
             for category, (idxs, words) in self.categories.items():
-                possible_words = [res[idxs[0]] + res[idxs[1]] + res[idxs[2]],
-                                  res[idxs[0]] + res[idxs[2]] + res[idxs[1]],
-                                  res[idxs[1]] + res[idxs[0]] + res[idxs[2]],
-                                  res[idxs[1]] + res[idxs[2]] + res[idxs[0]],
-                                  res[idxs[2]] + res[idxs[0]] + res[idxs[1]],
-                                  res[idxs[2]] + res[idxs[1]] + res[idxs[0]]]
-                if not any(i in possible_words for i in words):
+                word = res[idxs[0]] + res[idxs[1]] + res[idxs[2]]
+                if word in words:
                     return False
             return True
         else:
